@@ -1,0 +1,9 @@
+local AST = {}
+local AST_Static = {}
+
+AST_Static.NODE_TYPE_NUMERIC_LITERAL = 0
+AST_Static.NODE_TYPE_IDENTIFIER = 0
+AST_Static.NODE_TYPE_PROGRAM = 0
+AST_Static.NODE_TYPE_BINARY_EXPR = 0
+
+return AST_Static
