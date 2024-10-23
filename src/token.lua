@@ -1,16 +1,24 @@
 local Token_Static = {}
 local Token = {}
 
-Token_Static.INT = 0
-Token_Static.FLOAT = 1
+local c = 0
 
-Token_Static.STRING = 2
-Token_Static.IDENTIFER = 3
+local function add_field(field_name,v)
+    Token_Static[field_name] = v and v or c 
+    c = c + 1
+end
 
-Token_Static.BIN_OP = 4
+add_field("INT")
+add_field("FLOAT")
+add_field("STRING")
+add_field("IDENTIFIER")
+add_field("CLOSE_PAREN")
+add_field("OPEN_PAREN")
+add_field("PLUS")
+add_field("SUB")
 
-Token_Static.OPEN_PAREN = 5
-Token_Static.CLOSE_PAREN = 6
+add_field("MUL")
+add_field("DIV")
 
 local function report_table_error(errno,args)
     if errno == nil then
@@ -25,16 +33,22 @@ setmetatable(Token_Static,{
 })
 
 function Token_Static.new(type_id,value)
+
     return setmetatable({
         type_id = type_id,
         value = value
-    },{__index = function(self,key,value)
-        if rawget(Token,key) then
-            return rawget(Token,key)
-        else
-            return report_table_error(nil,{key = key,where = "Token instance"})
-        end
-    end})
+    },{__index = Token})
+
+    -- return setmetatable({
+    --     type_id = type_id,
+    --     value = value
+    -- },{__index = function(self,key,value)
+    --     if rawget(Token,key) then
+    --         return rawget(Token,key)
+    --     else
+    --         return report_table_error(nil,{key = key,where = "Token instance"})
+    --     end
+    -- end})
 end
 
 function Token_Static.typeid_tostring(type_id)
@@ -48,6 +62,14 @@ function Token_Static.typeid_tostring(type_id)
         return "OPEN_PAREN"
     elseif type_id == Token_Static.CLOSE_PAREN then
         return "CLOSE_PAREN"
+    elseif type_id == Token_Static.PLUS then
+        return "PLUS"
+    elseif type_id == Token_Static.SUB then
+        return "SUB"
+    elseif type_id == Token_Static.MUL then
+        return "MUL"
+    elseif type_id == Token_Static.DIV then
+        return "DIV"
     end
 
     error("UNHANDLED_TOKEN_TYPEID")
@@ -55,6 +77,10 @@ end
 
 function Token:typeid_tostring()
     return Token_Static.typeid_tostring(self.type_id)
+end
+
+function Token:tostring()
+   return string.format("%s: %s",self:typeid_tostring(),self.value) 
 end
 
 return Token_Static

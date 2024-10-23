@@ -81,6 +81,18 @@ function Lexer:tokenize()
         elseif self.char == "\"" then
             self:make_string()
             self:advance()
+        elseif self.char == "+" then
+            table.insert(self.tokens,Token.new(Token.PLUS,self.char))
+            self:advance()
+        elseif self.char == "-" then
+            table.insert(self.tokens,Token.new(Token.SUB,self.char))
+            self:advance()
+        elseif self.char == "*" then
+            table.insert(self.tokens,Token.new(Token.MUL,self.char))
+            self:advance()
+        elseif self.char == "/" then
+            table.insert(self.tokens,Token.new(Token.DIV,self.char))
+            self:advance()
         else
             local cursor_start = self.cursor:copy()
             local char = self.char
