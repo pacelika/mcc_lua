@@ -23,8 +23,25 @@ function Nodes.BinOp.new(left_node,op_token,right_node)
 end
 
 function Nodes.BinOp:tostring()
-    if not self.left_node or not self.right_node or not self.op_token then
-        return print("ERROR: cannot perform tostring on BinOp node.")
+    local issues = 0
+
+    if not self.left_node then
+        issues = issues+1
+        print("ERROR: left_node is nil")
+    end
+
+    if not self.right_node then
+        issues = issues+1
+        print("ERROR: right_node is nil")
+    end
+
+    if not self.op_token then
+        issues = issues+1
+        print("ERROR: op_token is nil")
+    end
+
+    if issues > 0 then
+        return
     end
 
     return string.format("(%s, %s, %s)",self.op_token.value,self.left_node:tostring() or "<LEFTNODE>",self.right_node:tostring() or "<RIGHTNODE>")

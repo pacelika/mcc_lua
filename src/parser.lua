@@ -29,7 +29,6 @@ end
 
 function Parser:advance()
     if self.token_index > #self.tokens then
-        print(self.token_index)
         return
     end
 
@@ -67,13 +66,24 @@ function Parser:bin_op(func,ops)
 
         while this.current_token and (is_type_present(ops,this.current_token.type_id)) do
             local op_token = this.current_token
+
+            if not initial_op_token then
+                initial_op_token = op_token
+            end
+
             this:advance()
 
             left = func(this)
             right = func(this)
 
+            if not left and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
+                left = Nodes.NumberNode.new(this.current_token)
+                self:advance()
+            end
+
             if not right and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
                 right = Nodes.NumberNode.new(this.current_token)
+                self:advance()
             end
 
             left = Nodes.BinOp.new(left,op_token,right)
@@ -84,12 +94,18 @@ function Parser:bin_op(func,ops)
 
     final_left = get(func,self)
     final_right = get(func,self)
-
-    if final_left and final_right then
-        final_left = Nodes.BinOp.new(final_left,initial_op_token,final_right)
+    
+    if not final_left then
+        return
     end
 
-    return final_left
+    if final_left and not final_right then
+        return final_left
+    end
+
+    if final_left and final_right then
+        return Nodes.BinOp.new(final_left,initial_op_token,final_right)
+    end
 end
 
 function Parser:term()

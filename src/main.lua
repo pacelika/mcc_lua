@@ -1,7 +1,8 @@
 local Lexer = require "src.lexer"
 local Parser = require "src.parser"
+local should_print_tokens = false
 
-local lexer = Lexer.new("(+ (+ 304 9) (+ 50 21))","Playground")
+local lexer = Lexer.new("(* (+ 1 2) (- 5 6)) (* 21 69)","Playground")
 local err = lexer:tokenize()
 
 if err then
@@ -17,13 +18,15 @@ if ast then
     end
 end
 
-print("-------------------------------\n")
+if should_print_tokens then
+    print("-------------------------------\n")
 
-print "["
-    for _,token in ipairs(lexer.tokens) do
-        print("  "..token:typeid_tostring() .. ": " .. token.value)
-    end
-print "]"
+    print "["
+        for _,token in ipairs(lexer.tokens) do
+            print("  "..token:typeid_tostring() .. ": " .. token.value)
+        end
+    print "]"
+end
 
 -- io.output(io.open("dist/out.s","w+"))
 -- io.write(output)
