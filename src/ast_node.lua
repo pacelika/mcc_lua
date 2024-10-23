@@ -10,7 +10,8 @@ function Nodes.NumberNode.new(token)
 end
 
 function Nodes.NumberNode:tostring()
-    return string.format("NumberNode: %s: %s",self.token:typeid_tostring(),self.token.value)
+    if not self.token or not self.token.value then return "<nan>" end
+    return string.format("%s: %s",self.token:typeid_tostring(),self.token.value)
 end
 
 function Nodes.BinOp.new(left_node,op_token,right_node)
@@ -22,7 +23,11 @@ function Nodes.BinOp.new(left_node,op_token,right_node)
 end
 
 function Nodes.BinOp:tostring()
-    return string.format("BinOp: (%s, %s, %s)",self.left_node.token.value,self.op_token.value,self.right_node.token.value)
+    if not self.left_node or not self.right_node or not self.op_token then
+        return print("ERROR: cannot perform tostring on BinOp node.")
+    end
+
+    return string.format("(%s, %s, %s)",self.op_token.value,self.left_node:tostring() or "<LEFTNODE>",self.right_node:tostring() or "<RIGHTNODE>")
 end
 
 return Nodes

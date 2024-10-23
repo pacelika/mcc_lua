@@ -12,13 +12,16 @@ add_field("INT")
 add_field("FLOAT")
 add_field("STRING")
 add_field("IDENTIFIER")
-add_field("CLOSE_PAREN")
-add_field("OPEN_PAREN")
+add_field("LPAREN")
+add_field("RPAREN")
+
 add_field("PLUS")
 add_field("SUB")
-
 add_field("MUL")
 add_field("DIV")
+
+add_field("SEMI_COLON")
+add_field("EOF")
 
 local function report_table_error(errno,args)
     if errno == nil then
@@ -33,22 +36,16 @@ setmetatable(Token_Static,{
 })
 
 function Token_Static.new(type_id,value)
-
     return setmetatable({
         type_id = type_id,
         value = value
-    },{__index = Token})
-
-    -- return setmetatable({
-    --     type_id = type_id,
-    --     value = value
-    -- },{__index = function(self,key,value)
-    --     if rawget(Token,key) then
-    --         return rawget(Token,key)
-    --     else
-    --         return report_table_error(nil,{key = key,where = "Token instance"})
-    --     end
-    -- end})
+    },{__index = function(self,key,value)
+        if rawget(Token,key) then
+            return rawget(Token,key)
+        else
+            return report_table_error(nil,{key = key,where = "Token instance"})
+        end
+    end})
 end
 
 function Token_Static.typeid_tostring(type_id)
@@ -58,10 +55,10 @@ function Token_Static.typeid_tostring(type_id)
         return "Float"
     elseif type_id == Token_Static.STRING then
         return "String"
-    elseif type_id == Token_Static.OPEN_PAREN then
-        return "OPEN_PAREN"
-    elseif type_id == Token_Static.CLOSE_PAREN then
-        return "CLOSE_PAREN"
+    elseif type_id == Token_Static.LPAREN then
+        return "LPAREN"
+    elseif type_id == Token_Static.RPAREN then
+        return "RPAREN"
     elseif type_id == Token_Static.PLUS then
         return "PLUS"
     elseif type_id == Token_Static.SUB then
@@ -70,9 +67,13 @@ function Token_Static.typeid_tostring(type_id)
         return "MUL"
     elseif type_id == Token_Static.DIV then
         return "DIV"
+    elseif type_id == Token_Static.SEMI_COLON then
+        return "SEMI_COLON"
+    elseif type_id == Token_Static.EOF then
+        return "EOF"
     end
 
-    error("UNHANDLED_TOKEN_TYPEID")
+    error("UNHANDLED_TOKEN_TYPEID",type_id)
 end
 
 function Token:typeid_tostring()
@@ -80,6 +81,10 @@ function Token:typeid_tostring()
 end
 
 function Token:tostring()
+    if not self.value then
+        return "<ERRTOKEN>"
+    end
+
    return string.format("%s: %s",self:typeid_tostring(),self.value) 
 end
 

@@ -71,10 +71,10 @@ function Lexer:tokenize()
         if self.char == "\t" or self.char == '' or self.char == " " then
             self:advance()
         elseif self.char == "(" then
-            table.insert(self.tokens,Token.new(Token.OPEN_PAREN,self.char))
+            table.insert(self.tokens,Token.new(Token.LPAREN,self.char))
             self:advance()
         elseif self.char == ")" then
-            table.insert(self.tokens,Token.new(Token.CLOSE_PAREN,self.char))
+            table.insert(self.tokens,Token.new(Token.RPAREN,self.char))
             self:advance()
         elseif tonumber(self.char) then
             self:make_number()
@@ -93,6 +93,9 @@ function Lexer:tokenize()
         elseif self.char == "/" then
             table.insert(self.tokens,Token.new(Token.DIV,self.char))
             self:advance()
+        elseif self.char == ";" then
+            table.insert(self.tokens,Token.new(Token.SEMI_COLON,self.char))
+            self:advance()
         else
             local cursor_start = self.cursor:copy()
             local char = self.char
@@ -100,6 +103,9 @@ function Lexer:tokenize()
             return Error.new(Error.ILLEGAL_CHAR,string.format("'%s'",char),cursor_start,self.cursor)           
         end
     end
+
+    table.insert(self.tokens,Token.new(Token.EOF,"EOF"))
+    self:advance()
 end
 
 return Lexer_Static

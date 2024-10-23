@@ -42,23 +42,54 @@ end
 function Parser:factor()
     local token = self.current_token
 
-    if token and (token.type_id == Token.INT or token.type_id == Token.FLOAT) then
+    if not token then
+        return
+    end
+
+    if token.type_id == Token.INT or token.type_id == Token.FLOAT then
         self:advance()
         return Nodes.NumberNode.new(token)
     end
 end
 
 function Parser:bin_op(func,ops)
-    local left = func(self)
+    local final_left = nil
+    local final_right = nil
+    local initial_op_token = nil
 
-    while self.current_token and (is_type_present(ops,self.current_token.type_id)) do
-        local op_token = self.current_token
-        self:advance()
-        local right = func(self)
-        left = Nodes.BinOp.new(left,op_token,right)
+    local function get(func,this)
+        local left = nil
+        local right = nil
+
+        if this.current_token.type_id == Token.LPAREN or this.current_token.type_id == Token.RPAREN then
+            this:advance()
+        end
+
+        while this.current_token and (is_type_present(ops,this.current_token.type_id)) do
+            local op_token = this.current_token
+            this:advance()
+
+            left = func(this)
+            right = func(this)
+
+            if not right and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
+                right = Nodes.NumberNode.new(this.current_token)
+            end
+
+            left = Nodes.BinOp.new(left,op_token,right)
+        end
+
+        return left
     end
 
-    return left
+    final_left = get(func,self)
+    final_right = get(func,self)
+
+    if final_left and final_right then
+        final_left = Nodes.BinOp.new(final_left,initial_op_token,final_right)
+    end
+
+    return final_left
 end
 
 function Parser:term()
