@@ -21,6 +21,8 @@ add_field("MUL")
 add_field("DIV")
 
 add_field("SEMI_COLON")
+add_field("IDENTIFIER")
+add_field("DEFVAR")
 add_field("EOF")
 
 local function report_table_error(errno,args)
@@ -42,8 +44,8 @@ function Token_Static.new(type_id,value)
     },{__index = function(self,key,value)
         if rawget(Token,key) then
             return rawget(Token,key)
-        else
-            return report_table_error(nil,{key = key,where = "Token instance"})
+        -- else
+        --     return report_table_error(nil,{key = key,where = "Token instance"})
         end
     end})
 end
@@ -71,6 +73,10 @@ function Token_Static.typeid_tostring(type_id)
         return "SEMI_COLON"
     elseif type_id == Token_Static.EOF then
         return "EOF"
+    elseif type_id == Token_Static.IDENTIFIER then
+        return "IDENT"
+    elseif type_id == Token_Static.DEFVAR then
+        return "DEFVAR"
     end
 
     error("UNHANDLED_TOKEN_TYPEID",type_id)
@@ -82,7 +88,7 @@ end
 
 function Token:tostring()
     if not self.value then
-        return "<ERRTOKEN>"
+        return self:typeid_tostring()
     end
 
    return string.format("%s: %s",self:typeid_tostring(),self.value) 

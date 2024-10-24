@@ -60,6 +60,8 @@ function Parser:bin_op(func,ops)
         local left = nil
         local right = nil
 
+        if not this.current_token then return end
+
         if this.current_token.type_id == Token.LPAREN or this.current_token.type_id == Token.RPAREN then
             this:advance()
         end
@@ -79,6 +81,13 @@ function Parser:bin_op(func,ops)
             if not left and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
                 left = Nodes.NumberNode.new(this.current_token)
                 self:advance()
+            end
+
+            if op_token.type_id == Token.SUB and not right then
+                if this.current_token.type_id == Token.RPAREN then
+                    local negative_value_token = Token.new(left.token.type_id,"-"..left.token.value)
+                    return Nodes.NumberNode.new(negative_value_token)
+                end
             end
 
             if not right and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
@@ -112,24 +121,81 @@ function Parser:term()
     return self:bin_op(self.factor,bin_ops)
 end
 
+function Parser:var_decl()
+    if not self.current_token then return end
+
+    if self.current_token.type_id == Token.DEFVAR then
+        self:advance()
+
+        local id_tok = self.current_token
+        
+        if id_tok.type_id ~= Token.IDENTIFIER  then
+            return print "ERROR: No identi provided"
+        end
+
+        self:advance()
+
+        local value_node = self:expr()
+
+        local type_ = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.type_id or value_node and value_node.type_id)
+        local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
+
+        if value and (is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BIN_OP) then
+            return Nodes.Declaration.new("VARDECL",id_tok.value,type_,value)
+        elseif not value_node then
+            return Nodes.Declaration.new("VARDECL",id_tok.value,Token.INT,0)
+        end
+    end
+end
+
 function Parser:expr()
-    return self:bin_op(self.term,bin_ops)
+    local bin_op = self:bin_op(self.factor,bin_ops)
+
+    if bin_op then return bin_op end
+
+    local expr = self:factor()
+
+    if expr then
+        return expr
+    end
 end
 
 function Parser:parse()
-    local result = {}
+    local ast = {}
 
-    while true do
-        local expr = self:expr()
+    while self.current_token do
+        if self.current_token.type_id == Token.DEFVAR then
+            local declaration = self:var_decl()
 
-        if expr == nil then
-            break 
+            if declaration then
+                table.insert(ast,declaration)
+            end
+        elseif self.current_token.type_id == Token.INT then
+            local expr = self:expr()
+            if expr then
+                table.insert(ast,expr)
+            end
+
+        elseif self.current_token.type_id == Token.LPAREN or self.current_token.type_id == Token.RPAREN then
+            self:advance()
+        elseif self.current_token.type_id == Token.PLUS then
+            local expr = self:expr()
+
+            if expr then
+                table.insert(ast,expr)
+            end
+        else
+            -- self:bin_op(self.factor,bin_ops)
+            -- print(self.current_token.value)
+            -- self:advance()
         end
 
-        table.insert(result,expr)
+        if not self.current_token or self.current_token.type_id == Token.EOF then
+            break
+        end
     end
 
-    return result
+    return ast 
 end
 
 return Parser_Static

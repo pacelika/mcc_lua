@@ -2,10 +2,16 @@ local Nodes = {}
 
 Nodes.NumberNode = {}
 Nodes.BinOp = {}
+Nodes.Declaration = {}
+
+Nodes.NODE_NUMBER= 0
+Nodes.NODE_BINOP = 1
+Nodes.NODE_DECLARATION = 2
 
 function Nodes.NumberNode.new(token)
     return setmetatable({
         token = token,
+        type_id = Nodes.NODE_NUMBER
     },{__index = Nodes.NumberNode})
 end
 
@@ -14,8 +20,25 @@ function Nodes.NumberNode:tostring()
     return string.format("%s: %s",self.token:typeid_tostring(),self.token.value)
 end
 
+function Nodes.Declaration.new(decl_type,name,d_type,value)
+    return setmetatable({
+        type_id = Nodes.NODE_DECLARATION,
+        decl_type = decl_type,
+        name = name,
+        d_type = d_type,
+        value = value
+    },{
+        __index = Nodes.Declaration
+    })
+end
+
+function Nodes.Declaration:tostring()
+    return string.format("{\n\tdecl_type: %s,\n\tname: %s,\n\td_type: %s,\n\tvalue: %s\n}",self.decl_type,self.name,self.d_type,type(self.value) == "table" and self.value:tostring() or self.value) 
+end
+
 function Nodes.BinOp.new(left_node,op_token,right_node)
     return setmetatable({
+        type_id = Nodes.NODE_BINOP,
         left_node = left_node,
         op_token = op_token,
         right_node = right_node

@@ -64,6 +64,22 @@ function Lexer:make_string()
     table.insert(self.tokens,Token.new(Token.STRING,str))
 end
 
+function Lexer:make_identifier()
+    local identifier = ""
+    
+    while not self.should_exit and self.char ~= " " and self.char:match("^[a-zA-Z]+$") do
+        identifier = identifier .. self.char
+        self:advance()
+    end
+
+    if identifier:lower() == "defvar" then
+        table.insert(self.tokens,Token.new(Token.DEFVAR,identifier)) 
+        return
+    end
+
+    table.insert(self.tokens,Token.new(Token.IDENTIFIER,identifier)) 
+end
+
 function Lexer:tokenize()
     self:advance()
 
@@ -93,6 +109,8 @@ function Lexer:tokenize()
         elseif self.char == "/" then
             table.insert(self.tokens,Token.new(Token.DIV,self.char))
             self:advance()
+        elseif tostring(self.char) then
+            self:make_identifier()
         elseif self.char == ";" then
             table.insert(self.tokens,Token.new(Token.SEMI_COLON,self.char))
             self:advance()
@@ -104,7 +122,7 @@ function Lexer:tokenize()
         end
     end
 
-    table.insert(self.tokens,Token.new(Token.EOF,"EOF"))
+    table.insert(self.tokens,Token.new(Token.EOF))
     self:advance()
 end
 
