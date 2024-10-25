@@ -24,15 +24,6 @@ if err then
     return print(err:what())
 end
 
-local parser = Parser.new(lexer.tokens)
-local ast = parser:parse()
-
-if ast then
-    for _ , node in pairs(ast) do
-        print(node:tostring())
-    end
-end
-
 if should_print_tokens then
     print("-------------------------------\n")
 
@@ -42,6 +33,18 @@ if should_print_tokens then
         end
     print "]"
 end
+
+local parser = Parser.new(lexer.tokens)
+local ast,ast_err = parser:parse()
+
+if ast_err then return print(ast_err) end
+
+if ast then
+    for _ , node in pairs(ast) do
+        print(node:tostring())
+    end
+end
+
 
 -- io.output(io.open("dist/out.s","w+"))
 -- io.write(output)

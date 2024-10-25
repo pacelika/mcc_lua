@@ -25,6 +25,8 @@ add_field("IDENTIFIER")
 add_field("DEFVAR")
 
 add_field("POINTER")
+add_field("ATTRIBUTE")
+add_field("PRIM_TYPE")
 
 add_field("EOF")
 
@@ -82,6 +84,10 @@ function Token_Static.typeid_tostring(type_id)
         return "DEFVAR"
     elseif type_id == Token_Static.POINTER then
         return "POINTER"
+    elseif type_id == Token_Static.ATTRIBUTE then
+        return "ATTRIBUTE"
+    elseif type_id == Token_Static.PRIM_TYPE then
+        return "PRIM_TYPE"
     end
 
     error("UNHANDLED_TOKEN_TYPEID",type_id)

@@ -72,8 +72,13 @@ function Lexer:make_identifier()
         self:advance()
     end
 
-    if identifier:lower() == "defvar" then
+    local id_lower = identifier:lower()
+
+    if id_lower == "defvar" then
         table.insert(self.tokens,Token.new(Token.DEFVAR,identifier)) 
+        return
+    elseif id_lower == "byte" or id_lower == "dword" or id_lower == "float" or id_lower == "word" then
+        table.insert(self.tokens,Token.new(Token.PRIM_TYPE,identifier)) 
         return
     end
 
@@ -84,7 +89,6 @@ function Lexer:tokenize()
     self:advance()
 
     while not self.should_exit do
-        -- print(self.char)
         if self.char == "\t" or self.char == '' or self.char == " " or self.char == "\n" then
             self:advance()
         elseif self.char == "(" then
@@ -99,26 +103,28 @@ function Lexer:tokenize()
             self:make_string()
             self:advance()
         elseif self.char == "+" then
-            table.insert(self.tokens,Token.new(Token.PLUS,self.char))
+            table.insert(self.tokens,Token.new(Token.PLUS))
             self:advance()
         elseif self.char == "-" then
-            table.insert(self.tokens,Token.new(Token.SUB,self.char))
+            table.insert(self.tokens,Token.new(Token.SUB))
             self:advance()
         elseif self.char == "*" then
-            table.insert(self.tokens,Token.new(Token.MUL,self.char))
+            table.insert(self.tokens,Token.new(Token.MUL))
             self:advance()
         elseif self.char == "/" then
-            table.insert(self.tokens,Token.new(Token.DIV,self.char))
+            table.insert(self.tokens,Token.new(Token.DIV))
             self:advance()
-        elseif tostring(self.char) then
-            self:make_identifier()
+        elseif self.char == ":" then
+            table.insert(self.tokens,Token.new(Token.ATTRIBUTE))
+            self:advance()
         elseif self.char == ";" then
-            table.insert(self.tokens,Token.new(Token.SEMI_COLON,self.char))
+            table.insert(self.tokens,Token.new(Token.SEMI_COLON))
             self:advance()
         elseif self.char == "@" then
-            table.insert(self.tokens,Token.new(Token.POINTER,self.char))
-            print "added char"
+            table.insert(self.tokens,Token.new(Token.POINTER))
             self:advance()
+        elseif self.char:match("^[a-zA-Z]+$") then
+            self:make_identifier()
         else
             local cursor_start = self.cursor:copy()
             local char = self.char
