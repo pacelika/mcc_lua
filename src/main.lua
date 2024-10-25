@@ -2,7 +2,22 @@ local Lexer = require "src.lexer"
 local Parser = require "src.parser"
 local should_print_tokens = false
 
-local lexer = Lexer.new("(defvar PI (-3.14))","Playground")
+local file_name = arg[1]
+
+if not file_name then
+    return print "ERROR: no input file provided"
+end
+
+local source_file = io.open(file_name,"r")
+
+if not source_file then
+    return print(string.format("ERROR: could not open file: %s",file_name))
+end
+
+local source_code = source_file:read("*all")
+source_file:close()
+
+local lexer = Lexer.new(source_code,file_name)
 local err = lexer:tokenize()
 
 if err then

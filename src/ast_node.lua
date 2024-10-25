@@ -67,7 +67,7 @@ function Nodes.BinOp:tostring()
         return
     end
 
-    return string.format("(%s, %s, %s)",self.op_token.value,self.left_node:tostring() or "<LEFTNODE>",self.right_node:tostring() or "<RIGHTNODE>")
+    return string.format("(%s, %s, %s)",self.op_token.value,self.left_node:tostring() or "left?",self.right_node:tostring() or "right?")
 end
 
 return Nodes

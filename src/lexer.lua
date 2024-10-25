@@ -84,7 +84,8 @@ function Lexer:tokenize()
     self:advance()
 
     while not self.should_exit do
-        if self.char == "\t" or self.char == '' or self.char == " " then
+        -- print(self.char)
+        if self.char == "\t" or self.char == '' or self.char == " " or self.char == "\n" then
             self:advance()
         elseif self.char == "(" then
             table.insert(self.tokens,Token.new(Token.LPAREN,self.char))
@@ -113,6 +114,10 @@ function Lexer:tokenize()
             self:make_identifier()
         elseif self.char == ";" then
             table.insert(self.tokens,Token.new(Token.SEMI_COLON,self.char))
+            self:advance()
+        elseif self.char == "@" then
+            table.insert(self.tokens,Token.new(Token.POINTER,self.char))
+            print "added char"
             self:advance()
         else
             local cursor_start = self.cursor:copy()

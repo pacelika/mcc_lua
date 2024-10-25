@@ -23,6 +23,9 @@ add_field("DIV")
 add_field("SEMI_COLON")
 add_field("IDENTIFIER")
 add_field("DEFVAR")
+
+add_field("POINTER")
+
 add_field("EOF")
 
 local function report_table_error(errno,args)
@@ -77,6 +80,8 @@ function Token_Static.typeid_tostring(type_id)
         return "IDENT"
     elseif type_id == Token_Static.DEFVAR then
         return "DEFVAR"
+    elseif type_id == Token_Static.POINTER then
+        return "POINTER"
     end
 
     error("UNHANDLED_TOKEN_TYPEID",type_id)
