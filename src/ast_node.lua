@@ -35,7 +35,7 @@ function Nodes.VarRef.new(name)
 end
 
 function Nodes.VarRef:tostring()
-    return string.format("(VAR_REF: %s)",self.name)
+    return string.format("(VAR: %s)",self.name)
 end
 
 function Nodes.Declaration.new(decl_type,name,d_type,value)
@@ -95,7 +95,7 @@ function Nodes.Declaration.decltype_tostring(id)
         return "DECL_ATTR"
     end
 
-    return "UNKNOWN_DECLARATION"
+    error("UNKNOWN_DECLARATION")
 end
 
 function Nodes.nodetype_tostring(id)
@@ -109,7 +109,7 @@ function Nodes.nodetype_tostring(id)
         return "VarRefNode"
     end
 
-    return "UnknownNode"
+    error("UnknownNode")
 end
 
 return Nodes

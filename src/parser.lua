@@ -59,7 +59,7 @@ end
 
 function Parser:bin_op(func, ops)
    if not self:validate_parentheses(self.tokens) then
-        return nil,"ERROR: Unbalanced parentheses"  -- Abort if parentheses are unbalanced
+        return nil,"ERROR: Unbalanced parentheses" 
     end
 
     local initial_op_token = nil
@@ -70,7 +70,6 @@ function Parser:bin_op(func, ops)
 
         if not this.current_token or this.current_token.type_id == Token.EOF then return end
 
-        -- Handle parentheses
         if this.current_token.type_id == Token.LPAREN then
             this:advance()
 
@@ -91,7 +90,10 @@ function Parser:bin_op(func, ops)
             op_token = this.current_token
             this:advance()
 
-            -- Get left operand
+            if not left then 
+                left = self:var_ref() 
+            end
+
             if not left then
                 left = func(this)
                 if not left and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
@@ -102,17 +104,20 @@ function Parser:bin_op(func, ops)
 
             local right = func(this)
 
-            -- Handle unary negative
             if op_token.type_id == Token.SUB then
                 if not right then
-                    if this.current_token and this.current_token.type_id == Token.RPAREN then
+                    left = left or self:var_ref()
+                    if this.current_token and left and left.token and this.current_token.type_id == Token.RPAREN then
                         local negative_value_token = Token.new(left.token.type_id, "-" .. left.token.value)
                         return Nodes.NumberNode.new(negative_value_token)
                     end
                 end
             end
 
-            -- Get right operand
+            if not right then
+                right = self:var_ref()
+            end
+
             if not right and (this.current_token.type_id == Token.INT or this.current_token.type_id == Token.FLOAT) then
                 right = Nodes.NumberNode.new(this.current_token)
                 this:advance()
@@ -131,13 +136,14 @@ function Parser:bin_op(func, ops)
             end
 
             if not right then
-                return nil,string.format("ERROR: Expected 2 operands for operation: %s", op_token.value)
+                right = self:term()
+                if not right then
+                    return nil,string.format("ERROR: Expected 2 operands for operation: %s", op_token.value)
+                end
             end
 
-            -- Create binary operation node
             left = Nodes.BinOp.new(left, op_token, right)
 
-            -- Store initial operator token for later usage
             if not initial_op_token then
                 initial_op_token = op_token
             end
@@ -211,9 +217,9 @@ function Parser:decl_var()
 
         local value_node = self:expr()
 
-        local type_ = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.type_id or value_node and value_node.type_id)
+        local type_ = value_node and (value_node.type_id and value_node.type_id) 
 
-        if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BIN_OP then
+        if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BIN_OP or type_ == Nodes.NODE_NUMBER then
             local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
             local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,type_ or Token.INT,value or 0)
             SymbolTable.append_node(decl_node)
@@ -306,7 +312,7 @@ function Parser:parse()
             if attribute then
                 table.insert(ast,attribute)
             end
-        elseif self.current_token.type_id == Token.INT then
+        elseif self.current_token.type_id == Token.INT or self.current_token.type_id == Token.FLOAT then
             local expr,err = self:expr()
 
             if err then return {},err end
