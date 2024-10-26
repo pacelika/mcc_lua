@@ -59,9 +59,10 @@ if ast then
     asm_gen.asm = asm_gen.asm .. "global _start\n"
     asm_gen.asm = asm_gen.asm .. "_start:\n"
 
-    asm_gen:read_ast()
+    if intent == "gen" then
+        asm_gen:read_ast()
+    end
 
-    -- asm_gen.asm = asm_gen.asm .. "\n"
     asm_gen.asm = asm_gen.asm .. "\tmov eax,1\n"
     asm_gen.asm = asm_gen.asm .. "\tint 0x80\n"
 

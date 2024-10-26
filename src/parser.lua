@@ -219,7 +219,7 @@ function Parser:decl_var()
 
         local type_ = value_node and (value_node.type_id and value_node.type_id) 
 
-        if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BIN_OP or type_ == Nodes.NODE_NUMBER then
+        if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BINOP or type_ == Nodes.NODE_NUMBER then
             local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
             local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,type_ or Token.INT,value or 0)
             SymbolTable.append_node(decl_node)
@@ -252,7 +252,8 @@ function Parser:decl_attr()
             end
         end
 
-        local type_ = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.type_id or value_node and value_node.type_id)
+
+        local type_ = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.type_id or value_node and value_node.type_id)
         local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
 
         if value then

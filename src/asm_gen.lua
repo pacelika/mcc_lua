@@ -32,11 +32,28 @@ end
 function AsmGen:read_ast()
     while self.current_node do
         if self.current_node.type_id == Nodes.NODE_BINOP then
-            self.asm = self.asm..string.format("\tmov ebx,%s\n",self.current_node.left_node.token.value)
-            self.asm = self.asm..string.format("\tmov ecx,%s\n",self.current_node.right_node.token.value)
+            if self.current_node.left_node.token and self.current_node.right_node.token then
+                if self.current_node.op_token.type_id == Token.MUL or self.current_node.op_token.type_id == Token.DIV then
+                    self.asm = self.asm..string.format("\tmov eax,%s\n",self.current_node.left_node.token.value)
+                    self.asm = self.asm..string.format("\tmov ebx,%s\n",self.current_node.right_node.token.value)
+                else
+                    self.asm = self.asm..string.format("\tmov ebx,%s\n",self.current_node.left_node.token.value)
+                    self.asm = self.asm..string.format("\tmov ecx,%s\n",self.current_node.right_node.token.value)
+                end
+            end
             if (self.current_node.op_token.type_id == Token.PLUS) then
                 self.asm = self.asm.."\tadd ebx,ecx\n\n"
+            elseif (self.current_node.op_token.type_id == Token.SUB) then
+                self.asm = self.asm.."\tsub ebx,ecx\n\n"
+            elseif (self.current_node.op_token.type_id == Token.MUL) then
+                self.asm = self.asm.."\tmul ebx\n\n"
+                self.asm = self.asm.."\tmov ebx,eax\n\n"
+            elseif (self.current_node.op_token.type_id == Token.DIV) then
+                self.asm = self.asm.."\tdiv ebx\n\n"
+                self.asm = self.asm.."\tmov ebx,eax\n\n"
             end
+        elseif self.current_node.type_id == Nodes.NODE_NUMBER then
+            self.asm = self.asm..string.format("\tmov ebx,%s\n",self.current_node.token.value)
         elseif self.current_node.type_id == Nodes.VAR_REF then
             self.asm = self.asm..string.format("\tmov ebx,[%s]\n",self.current_node.name)
         end

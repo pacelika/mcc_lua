@@ -1,5 +1,7 @@
 local Nodes = {}
 
+local Token = require "src.token"
+
 Nodes.NumberNode = {}
 Nodes.BinOp = {}
 Nodes.Declaration = {}
@@ -9,7 +11,6 @@ Nodes.VarRef = {}
 Nodes.NODE_NUMBER = 0
 Nodes.NODE_BINOP = 1
 Nodes.NODE_DECLARATION = 2
-Nodes.NODE_VARREF = 3
 
 Nodes.Declaration.DECL_VAR = 0
 Nodes.Declaration.DECL_ATTR = 1
@@ -51,7 +52,7 @@ function Nodes.Declaration.new(decl_type,name,d_type,value)
 end
 
 function Nodes.Declaration:tostring()
-    return string.format("{\n  decl_type: %s,\n  name: %s,\n  type: %s,\n  value: %s\n}",Nodes.Declaration.decltype_tostring(self.decl_type),self.name,Nodes.nodetype_tostring(self.d_type),type(self.value) == "table" and self.value:tostring() or self.value) 
+    return string.format("{\n  decl_type: %s,\n  name: %s,\n  type: %s,\n  value: %s\n}",Nodes.Declaration.decltype_tostring(self.decl_type),self.name,Token.typeid_tostring(self.d_type),type(self.value) == "table" and self.value:tostring() or self.value) 
 end
 
 function Nodes.BinOp.new(left_node,op_token,right_node)
@@ -105,8 +106,6 @@ function Nodes.nodetype_tostring(id)
         return "BinOpNode"
     elseif id == Nodes.NODE_DECLARATION then
         return "DeclNode"
-    elseif id == Nodes.NODE_VARREF then
-        return "VarRefNode"
     end
 
     error("UnknownNode")
