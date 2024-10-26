@@ -28,6 +28,7 @@ add_field("POINTER")
 add_field("ATTRIBUTE")
 add_field("PRIM_TYPE")
 
+add_field("NOP")
 add_field("EOF")
 
 local function report_table_error(errno,args)
@@ -86,6 +87,8 @@ function Token_Static.typeid_tostring(type_id)
         return "POINTER"
     elseif type_id == Token_Static.ATTRIBUTE then
         return "ATTRIBUTE"
+    elseif type_id == Token_Static.NOP then
+        return "NOP"
     elseif type_id == Token_Static.PRIM_TYPE then
         return "PRIM_TYPE"
     end

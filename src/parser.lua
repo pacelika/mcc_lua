@@ -3,6 +3,8 @@ local Parser = {}
 
 local Token = require "src.token"
 local Nodes = require "src.ast_node"
+local ContentCursor = require "src.content_cursor"
+local SymbolTable = require "src.symbol_table"
 
 local bin_ops = {Token.MUL,Token.DIV,Token.PLUS,Token.SUB}
 
@@ -17,7 +19,7 @@ end
 function Parser_Static.new(tokens,token_index)
     local self = setmetatable({
         tokens = tokens,
-        token_index = token_index or 0,
+        cursor = ContentCursor.new(token_index,1,0,nil,nil),
     },{
         __index = Parser
     })
@@ -32,13 +34,12 @@ function Parser:copy()
 end
 
 function Parser:advance()
-    if self.token_index > #self.tokens then
-        print "what's wrong"
+    if self.cursor.index > #self.tokens then
         return
     end
 
-    self.token_index = self.token_index + 1
-    self.current_token = self.tokens[self.token_index]
+    self.cursor:advance()
+    self.current_token = self.tokens[self.cursor.index]
 
     return self.current_token
 end
@@ -203,7 +204,7 @@ function Parser:decl_var()
         local id_tok = self.current_token
         
         if id_tok.type_id ~= Token.IDENTIFIER  then
-            return nil,"ERROR: No identi provided"
+            return nil,"ERROR: No identifier provided for variable declaration"
         end
 
         self:advance()
@@ -211,12 +212,12 @@ function Parser:decl_var()
         local value_node = self:expr()
 
         local type_ = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.type_id or value_node and value_node.type_id)
-        local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
 
-        if value and (is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BIN_OP) then
-            return Nodes.Declaration.new("VARDECL",id_tok.value,type_,value)
-        elseif not value_node then
-            return Nodes.Declaration.new("VARDECL",id_tok.value,Token.INT,0)
+        if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BIN_OP then
+            local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
+            local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,type_ or Token.INT,value or 0)
+            SymbolTable.append_node(decl_node)
+            return decl_node
         end
     end
 end
@@ -239,6 +240,7 @@ function Parser:decl_attr()
         if not value_node then
             if self.current_token.type_id == Token.PRIM_TYPE then
                 value_node = self.current_token
+                self:advance()
             elseif self.current_token.type_id == Token.IDENTIFIER then
                 return nil,string.format("ERROR: :%s %s ERR_TYPE = WHAT",id_tok.value,self.current_token.value)
             end
@@ -248,9 +250,9 @@ function Parser:decl_attr()
         local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
 
         if value then
-            return Nodes.Declaration.new("ATTRDECL",id_tok.value,type_,value)
+            return Nodes.Declaration.new(Nodes.Declaration.DECL_ATTR,id_tok.value,type_,value)
         else
-            return Nodes.Declaration.new("ATTRDECL",id_tok.value,Token.INT,1)
+            return Nodes.Declaration.new(Nodes.Declaration.DECL_ATTR,id_tok.value,Token.INT,1)
         end
     end
 end
@@ -266,6 +268,20 @@ function Parser:expr()
 
     if expr then
         return expr
+    end
+end
+
+function Parser:var_ref()
+    if not self.current_token then return end
+
+    if not self:validate_parentheses(self.tokens) then
+        return nil,"Error: unbalanced parentheses for variable reference" 
+    end
+
+    if self.current_token.type_id == Token.IDENTIFIER then 
+        local var_ref = self.current_token
+        self:advance()
+        return Nodes.VarRef.new(var_ref.value)
     end
 end
 
@@ -306,6 +322,14 @@ function Parser:parse()
             if expr then
                 table.insert(ast,expr)
             end
+        elseif self.current_token.type_id == Token.IDENTIFIER then
+            local var_ref,err = self:var_ref()
+
+            if err then return {},err end
+
+            if var_ref then
+                table.insert(ast,var_ref)
+            end
         else
             local expr,err = self:expr()
 
@@ -314,6 +338,10 @@ function Parser:parse()
             if expr then
                 table.insert(ast,expr)
             end
+        end
+
+        if self.current_token.type_id == Token.NOP then
+            self:advance()
         end
 
         if self.current_token.type_id == Token.RPAREN then

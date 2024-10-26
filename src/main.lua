@@ -25,13 +25,18 @@ if err then
 end
 
 if should_print_tokens then
-    print("-------------------------------\n")
+    local dash_count = 64
+
+    print("\t\t\t\tTokens")
+    print(string.rep("-",dash_count))
 
     print "["
         for _,token in ipairs(lexer.tokens) do
             print("  "..token:typeid_tostring() .. (token.value and ": " or "") .. (token.value or ""))
         end
     print "]"
+
+    print(string.rep("-",dash_count))
 end
 
 local parser = Parser.new(lexer.tokens)
@@ -44,7 +49,6 @@ if ast then
         print(node:tostring())
     end
 end
-
 
 -- io.output(io.open("dist/out.s","w+"))
 -- io.write(output)

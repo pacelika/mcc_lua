@@ -67,7 +67,7 @@ end
 function Lexer:make_identifier()
     local identifier = ""
     
-    while not self.should_exit and self.char ~= " " and self.char:match("^[a-zA-Z]+$") do
+    while not self.should_exit and self.char ~= " " and (self.char:match("^[a-zA-Z]+$") or self.char == "_")do
         identifier = identifier .. self.char
         self:advance()
     end
@@ -83,6 +83,14 @@ function Lexer:make_identifier()
     end
 
     table.insert(self.tokens,Token.new(Token.IDENTIFIER,identifier)) 
+end
+
+function Lexer:make_comment()
+    while self.char ~= "\n" and not self.should_exit do
+         self:advance()
+    end
+
+    table.insert(self.tokens,Token.new(Token.NOP)) 
 end
 
 function Lexer:tokenize()
@@ -118,12 +126,11 @@ function Lexer:tokenize()
             table.insert(self.tokens,Token.new(Token.ATTRIBUTE))
             self:advance()
         elseif self.char == ";" then
-            table.insert(self.tokens,Token.new(Token.SEMI_COLON))
-            self:advance()
+            self:make_comment()
         elseif self.char == "@" then
             table.insert(self.tokens,Token.new(Token.POINTER))
             self:advance()
-        elseif self.char:match("^[a-zA-Z]+$") then
+        elseif self.char:match("^[a-zA-Z]+$") or self.char == "_" then
             self:make_identifier()
         else
             local cursor_start = self.cursor:copy()
