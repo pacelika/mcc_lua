@@ -50,18 +50,18 @@ if ast_err then return print(ast_err) end
 if ast then
     local asm_gen = AsmGen.new(ast)
 
-    -- for key,value in pairs(SymbolTable.variables) do
-    --     print(key,value:tostring())
-    -- end
-
     if intent ~= "gen" then
         for _ , node in pairs(ast) do
             print(node:tostring())
         end
     end
 
+    asm_gen.asm = asm_gen.asm .. "section .data\n"
+    asm_gen:make_variables()
+    asm_gen.asm = asm_gen.asm .. "\n"
+
     asm_gen.asm = asm_gen.asm .. "section .text\n"
-    asm_gen.asm = asm_gen.asm .. "global _start\n"
+    asm_gen.asm = asm_gen.asm .. "\tglobal _start\n\n"
     asm_gen.asm = asm_gen.asm .. "_start:\n"
 
     if intent == "gen" then

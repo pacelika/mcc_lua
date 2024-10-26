@@ -75,7 +75,7 @@ function Parser:bin_op(func, ops)
 
             left = func(this)
 
-            if not left and (not is_type_present(ops, this.current_token.type_id) and self.current_token.type_id ~= Token.DEFVAR) then
+            if not left and not is_type_present(ops,this.current_token.type_id) and not is_type_present({Token.DEFVAR,Token.IDENTIFIER},self.current_token.type_id) then
                 return nil,"ERROR: Expected expression inside parentheses"
             end
 
@@ -217,12 +217,32 @@ function Parser:decl_var()
 
         local value_node = self:expr()
 
+        local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,nil,nil)
+
+        local function fetch_attributes()
+            while true do
+                local attr = self:decl_attr()
+
+                if not attr then break end
+
+                if attr then
+                    table.insert(decl_node.arguments,attr)
+                end
+            end
+        end
+
+        if not value_node then
+            fetch_attributes()
+        end
+
         local type_ = (value_node and not value_node.token and value_node.type_id or (value_node and value_node.token.type_id)) or Token.INT
 
         if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BINOP or type_ == Nodes.NODE_NUMBER then
             local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) or 0
-            local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,type_,value)
+            decl_node.d_type = type_
+            decl_node.value = value
             SymbolTable.append_node(decl_node)
+            fetch_attributes()
             return decl_node
         end
     end

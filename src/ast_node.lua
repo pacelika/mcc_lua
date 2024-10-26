@@ -111,7 +111,7 @@ function Nodes.nodetype_tostring(id)
         return "DeclNode"
     end
 
-    error("UnknownNode")
+    -- error("UnknownNode")
 end
 
 return Nodes

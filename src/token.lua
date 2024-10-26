@@ -14,16 +14,13 @@ add_field("STRING")
 add_field("IDENTIFIER")
 add_field("LPAREN")
 add_field("RPAREN")
-
 add_field("PLUS")
 add_field("SUB")
 add_field("MUL")
 add_field("DIV")
-
 add_field("SEMI_COLON")
 add_field("IDENTIFIER")
 add_field("DEFVAR")
-
 add_field("POINTER")
 add_field("ATTRIBUTE")
 add_field("PRIM_TYPE")
