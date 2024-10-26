@@ -1,5 +1,6 @@
 local Lexer = require "src.lexer"
 local Parser = require "src.parser"
+local SymbolTable = require "src.symbol_table"
 local should_print_tokens = false
 local AsmGen = require "src.asm_gen"
 
@@ -48,6 +49,10 @@ if ast_err then return print(ast_err) end
 
 if ast then
     local asm_gen = AsmGen.new(ast)
+
+    -- for key,value in pairs(SymbolTable.variables) do
+    --     print(key,value:tostring())
+    -- end
 
     if intent ~= "gen" then
         for _ , node in pairs(ast) do

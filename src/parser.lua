@@ -59,7 +59,7 @@ end
 
 function Parser:bin_op(func, ops)
    if not self:validate_parentheses(self.tokens) then
-        return nil,"ERROR: Unbalanced parentheses" 
+        return nil,"ERROR: Unbalanced parentheses in binary operation" 
     end
 
     local initial_op_token = nil
@@ -75,9 +75,9 @@ function Parser:bin_op(func, ops)
 
             left = func(this)
 
-            -- if not left then
-            --     return nil,"ERROR: Expected expression inside parentheses"
-            -- end
+            if not left and (not is_type_present(ops, this.current_token.type_id) and self.current_token.type_id ~= Token.DEFVAR) then
+                return nil,"ERROR: Expected expression inside parentheses"
+            end
 
             if this.current_token and this.current_token.type_id == Token.RPAREN then
                 this:advance()
@@ -138,7 +138,7 @@ function Parser:bin_op(func, ops)
             if not right then
                 right = self:term()
                 if not right then
-                    return nil,string.format("ERROR: Expected 2 operands for operation: %s", op_token.value)
+                    return nil,string.format("ERROR: Expected 2 operands for binary operation: %s",op_token:tostring())
                 end
             end
 
@@ -217,11 +217,11 @@ function Parser:decl_var()
 
         local value_node = self:expr()
 
-        local type_ = value_node and (value_node.type_id and value_node.type_id) 
+        local type_ = (value_node and not value_node.token and value_node.type_id or (value_node and value_node.token.type_id)) or Token.INT
 
         if is_type_present({Token.INT,Token.FLOAT},type_) or type_ == Nodes.NODE_BINOP or type_ == Nodes.NODE_NUMBER then
-            local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
-            local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,type_ or Token.INT,value or 0)
+            local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) or 0
+            local decl_node = Nodes.Declaration.new(Nodes.Declaration.DECL_VAR,id_tok.value,type_,value)
             SymbolTable.append_node(decl_node)
             return decl_node
         end
@@ -252,8 +252,7 @@ function Parser:decl_attr()
             end
         end
 
-
-        local type_ = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.type_id or value_node and value_node.type_id)
+        local type_ = value_node and value_node.type_id 
         local value = value_node and (value_node.type_id == Nodes.NODE_NUMBER and value_node.token.value or value_node) 
 
         if value then

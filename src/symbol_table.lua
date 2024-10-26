@@ -1,7 +1,9 @@
-local SymbolTable = {}
+local SymbolTable = {
+    variables = {}
+}
 
 function SymbolTable.append_node(node)
-    SymbolTable[node.name] = node
+    SymbolTable.variables[node.name] = node
 end
 
 return SymbolTable

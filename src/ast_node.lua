@@ -45,14 +45,17 @@ function Nodes.Declaration.new(decl_type,name,d_type,value)
         decl_type = decl_type,
         name = name,
         d_type = d_type,
-        value = value
+        value = value,
+        arguments = {}
     },{
         __index = Nodes.Declaration
     })
 end
 
 function Nodes.Declaration:tostring()
-    return string.format("{\n  decl_type: %s,\n  name: %s,\n  type: %s,\n  value: %s\n}",Nodes.Declaration.decltype_tostring(self.decl_type),self.name,Token.typeid_tostring(self.d_type),type(self.value) == "table" and self.value:tostring() or self.value) 
+    local type_ = type(self.value) == "table" and Nodes.nodetype_tostring(self.d_type) or Token.typeid_tostring(self.d_type)
+
+    return string.format("{\n  decl_type: %s,\n  name: %s,\n  type: %s,\n  value: %s\n}",Nodes.Declaration.decltype_tostring(self.decl_type),self.name,type_,type(self.value) == "table" and self.value:tostring() or self.value) 
 end
 
 function Nodes.BinOp.new(left_node,op_token,right_node)
